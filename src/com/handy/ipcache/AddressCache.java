@@ -3,13 +3,6 @@ package com.handy.ipcache;
 import java.net.InetAddress;
 
 /**
- * Although this is a java file, you may use ANY LANGUAGE WHATSOEVER together
- * with any libraries whatsoever (with the exclusion of libraries that provide
- * substantially complete functionality requested here).
- * 
- * Return your code by email or public github repo with instructions on how to
- * run it.
- *
  * This is an interface for a fictional {@link InetAddress} cache. The cache
  * maintains a "Last-In-First-Out" (LIFO) retrieve policy and a "First-In-
  * First-Out" (FIFO) eviction policy.
