@@ -34,7 +34,6 @@ public class AddressCacheImplTest {
 
 	@Test
 	public void testOffer() {
-
 		addressCache.offer(ip1);
 		addressCache.offer(ip2);
 		addressCache.offer(ip3);
@@ -79,7 +78,6 @@ public class AddressCacheImplTest {
 	@Test
 	public void testTake() throws InterruptedException {
 		new Thread(new Runnable() {
-
 			@Override
 			public void run() {
 				try {
@@ -95,9 +93,7 @@ public class AddressCacheImplTest {
 			}
 		}).run();
 
-		
 		new Thread(new Runnable() {
-
 			@Override
 			public void run() {
 				try {
@@ -127,11 +123,11 @@ public class AddressCacheImplTest {
 		addressCache.offer(ip2);
 		addressCache.offer(ip3);
 		assertEquals(3, addressCache.size());
-		
+
 		addressCache.remove();
 		addressCache.remove();
 		assertEquals(1, addressCache.size());
-		
+
 		addressCache.remove();
 		assertEquals(0, addressCache.size());
 	}
