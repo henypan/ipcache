@@ -18,7 +18,6 @@ public class AddressCacheImplTest {
 	public InetAddress ip1;
 	public InetAddress ip2;
 	public InetAddress ip3;
-	public AddressCache  addressCache2;
 
 	@Before
 	public void setUp() throws Exception {
@@ -26,8 +25,6 @@ public class AddressCacheImplTest {
 		ip1 = InetAddress.getByName("10.107.1.1");
 		ip2 = InetAddress.getByName("10.107.1.2");
 		ip3 = InetAddress.getByName("10.107.1.3");
-		
-		addressCache2 = new AddressCacheImpl(10, 5000L);
 	}
 
 	@After
@@ -143,39 +140,4 @@ public class AddressCacheImplTest {
 	public void testIsEmpty() {
 		assertTrue(addressCache.isEmpty());
 	}
-	
-	@Test 
-	public void testCleanup() {
-		new Thread(new Runnable() {
-
-			@Override
-			public void run() {
-				try {
-					Thread.sleep(2000);
-					addressCache2.offer(ip1);
-					Thread.sleep(2000);
-				} catch (InterruptedException e) {
-					e.printStackTrace();
-				}
-			}
-		}).run();
-		
-		new Thread(new Runnable() {
-
-			@Override
-			public void run() {
-				try {
-					while (!addressCache2.isEmpty()) {
-						System.out.println(addressCache2.peek());
-						Thread.sleep(1000);
-					}
-				} catch (InterruptedException e) {
-					e.printStackTrace();
-				}
-			}
-		}).run();
-		
-		assertTrue(addressCache2.isEmpty());
-	}
-
 }

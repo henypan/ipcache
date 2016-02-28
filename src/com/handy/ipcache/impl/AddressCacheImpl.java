@@ -1,6 +1,7 @@
 package com.handy.ipcache.impl;
 
 import java.net.InetAddress;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
@@ -32,8 +33,7 @@ public class AddressCacheImpl implements AddressCache {
 		public DoubleLinkedListNode prev;
 		public DoubleLinkedListNode next;
 
-		public DoubleLinkedListNode(int key, InetAddress address, Long lastUsedTime) {
-			this.key = key;
+		public DoubleLinkedListNode(InetAddress address, Long lastUsedTime) {
 			this.address = address;
 			this.lastUsedTime = lastUsedTime;
 
@@ -61,6 +61,11 @@ public class AddressCacheImpl implements AddressCache {
 		this(CACHE_SIZE_DEFAULT, 0L);
 	}
 
+	/**
+	 * This operation consists add to hashmap O(1), and add to doubly linked
+	 * list O(1) So time complexity of this method is O(1)
+	 * 
+	 */
 	@Override
 	public boolean offer(InetAddress address) {
 		lock.lock();
@@ -77,7 +82,7 @@ public class AddressCacheImpl implements AddressCache {
 				if (cache.size() >= capacity) {
 					isOffered = false;
 				} else {
-					DoubleLinkedListNode newNode = new DoubleLinkedListNode(key, address, System.currentTimeMillis());
+					DoubleLinkedListNode newNode = new DoubleLinkedListNode(address, System.currentTimeMillis());
 					setHead(newNode);
 					cache.put(key, newNode);
 					isOffered = true;
@@ -92,6 +97,9 @@ public class AddressCacheImpl implements AddressCache {
 		}
 	}
 
+	/**
+	 * O(1)
+	 */
 	@Override
 	public boolean contains(InetAddress address) {
 		synchronized (cache) {
@@ -103,6 +111,10 @@ public class AddressCacheImpl implements AddressCache {
 		}
 	}
 
+	/**
+	 * This operation consists removing from hashmap O(1), and removing from
+	 * doubly linked list O(1) So time complexity is O(1)
+	 */
 	@Override
 	public boolean remove(InetAddress address) {
 		synchronized (cache) {
@@ -118,6 +130,9 @@ public class AddressCacheImpl implements AddressCache {
 		}
 	}
 
+	/**
+	 * O(1)
+	 */
 	@Override
 	public InetAddress peek() {
 		synchronized (cache) {
@@ -130,12 +145,15 @@ public class AddressCacheImpl implements AddressCache {
 
 	}
 
+	/**
+	 * O(1)
+	 */
 	@Override
 	public InetAddress remove() {
 		synchronized (cache) {
 			if (!cache.isEmpty() && head != null) {
 				DoubleLinkedListNode tmp = head;
-				cache.remove(head.key);
+				cache.remove(head.address.hashCode());
 				removeNode(head);
 				return tmp.address;
 			} else {
@@ -145,6 +163,9 @@ public class AddressCacheImpl implements AddressCache {
 
 	}
 
+	/**
+	 * O(1)
+	 */
 	@Override
 	public InetAddress take() throws InterruptedException {
 		lock.lock();
@@ -161,7 +182,9 @@ public class AddressCacheImpl implements AddressCache {
 		}
 
 	}
-
+	/**
+	 * O(n)
+	 */
 	@Override
 	public void close() {
 		synchronized (cache) {
@@ -170,14 +193,19 @@ public class AddressCacheImpl implements AddressCache {
 			this.end = null;
 		}
 	}
-
+	/**
+	 * O(1)
+	 */
 	@Override
 	public int size() {
 		synchronized (cache) {
 			return cache.size();
 		}
 	}
-
+	
+	/**
+	 * O(1)
+	 */
 	@Override
 	public boolean isEmpty() {
 		synchronized (cache) {
@@ -224,22 +252,46 @@ public class AddressCacheImpl implements AddressCache {
 		}
 	}
 
+	/**
+	 * o(n)
+	 */
+	public void cleanup() {
+		try {
+			if (cachingTime > 0) {
+				Thread.sleep(5000);
+				ArrayList<Integer> deleteKey = new ArrayList<Integer>();
+				synchronized (cache) {
+					System.out.println(end);
+					System.out.println(cache.keySet());
+					for (int key : cache.keySet()) {
+						if (cache.get(key).isExpired()) {
+							deleteKey.add(key);
+						}
+					}
+				}
+
+				for (int key : deleteKey) {
+					synchronized (cache) {
+						DoubleLinkedListNode temp = cache.get(key);
+						cache.remove(key);
+						removeNode(temp);
+					}
+				}
+			}
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+	}
+
 	{
 		Thread cleaningThread = new Thread(new Runnable() {
 
 			@Override
 			public void run() {
 				try {
-					if (cachingTime > 0) {
-						while (true) {
-							if (!cache.isEmpty() && end != null) {
-								if (cache.get(end.key).isExpired()) {
-									cache.remove(end.key);
-									removeNode(end);
-								}
-							}
-							Thread.sleep(5000);
-						}
+					while (true) {
+						cleanup();
+						Thread.sleep(5000);
 					}
 				} catch (InterruptedException e) {
 					e.printStackTrace();
