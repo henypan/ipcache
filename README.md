@@ -1,5 +1,5 @@
 # IP cache implementation
-
+Author: Henry Pan  
 This project implements a cache structure for IP instances using **LRU** (least recently used) algrithm. 
 
 #### 1. src/com.handy.ipcache.AddressCache.java
